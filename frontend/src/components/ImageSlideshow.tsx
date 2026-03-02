@@ -1,12 +1,10 @@
 import "../styles/ImageSlideshow.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type ImageSlideshowProps = {
   imageUrls: string[];
   interval?: number;
 };
-
-let timer: number | undefined;
 
 export function ImageSlideshow({
   imageUrls,
@@ -14,27 +12,31 @@ export function ImageSlideshow({
 }: ImageSlideshowProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(true);
+  const [showPlaceholder, setShowPlaceholder] = useState(false);
+  const timerRef = useRef<number | null>(null);
   const isEmpty = imageUrls.length === 0;
 
-  function handleNext() {
+  const handleNext = useCallback(() => {
     if (isEmpty) return;
-    if (currentIndex === -1) {
+    if (showPlaceholder) {
+      setShowPlaceholder(false);
       setCurrentIndex(0);
       return;
     }
     setCurrentIndex((prevIndex) => (prevIndex + 1) % imageUrls.length);
-  }
+  }, [isEmpty, showPlaceholder, imageUrls.length]);
 
-  function handlePrevious() {
+  const handlePrevious = useCallback(() => {
     if (isEmpty) return;
     if (currentIndex === 0) {
-      setCurrentIndex(-1);
+      setShowPlaceholder(true);
       return;
     }
+    setShowPlaceholder(false);
     setCurrentIndex(
       (prevIndex) => (prevIndex - 1 + imageUrls.length) % imageUrls.length,
     );
-  }
+  }, [currentIndex, isEmpty, imageUrls.length]);
 
   function handlePause() {
     setIsPaused((prev) => !prev);
@@ -51,40 +53,58 @@ export function ImageSlideshow({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [imageUrls.length]);
+  }, [handleNext, handlePrevious]);
+
+  useEffect(() => {
+    if (isEmpty) {
+      setCurrentIndex(0);
+      setShowPlaceholder(false);
+      return;
+    }
+
+    if (currentIndex >= imageUrls.length) {
+      setCurrentIndex(0);
+    }
+  }, [currentIndex, imageUrls.length, isEmpty]);
 
   useEffect(() => {
     if (isEmpty) return;
 
     if (isPaused) {
-      if (timer) {
-        clearInterval(timer);
+      if (timerRef.current !== null) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
       }
       return;
     }
 
-    timer = setInterval(() => {
-      handleNext();
-    }, interval);
+    timerRef.current = window.setInterval(handleNext, interval);
 
-    return () => clearInterval(timer);
-  }, [imageUrls.length, interval, isPaused]);
+    return () => {
+      if (timerRef.current !== null) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [handleNext, interval, isEmpty, isPaused]);
 
   return (
     <div className="image-slideshow">
       <button
         className="prev-button"
         onClick={handlePrevious}
-        disabled={isEmpty || currentIndex === -1}
+        disabled={isEmpty || showPlaceholder}
       >
         {"<"}
       </button>
-      {currentIndex === -1 ? (
+      {isEmpty ? (
+        <div className="placeholder">No images</div>
+      ) : showPlaceholder ? (
         <div className="placeholder">No previous image</div>
       ) : (
         <img src={imageUrls[currentIndex]} alt={`Slide ${currentIndex + 1}`} />
       )}
-      <button className="next-button" onClick={handleNext}>
+      <button className="next-button" onClick={handleNext} disabled={isEmpty}>
         {">"}
       </button>
 
