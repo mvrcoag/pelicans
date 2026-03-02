@@ -1,11 +1,30 @@
 import "./App.css";
 import { ImageSlideshow } from "./components/ImageSlideshow";
-import { usePelicanImage } from "./hooks/usePelicanImage";
+import { useSlideshow } from "./hooks/useSlideshow";
+import { pelicanImageService } from "./services/pelicanImageService";
 
 function App() {
-  const { imageUrls } = usePelicanImage();
+  const {
+    imageUrls,
+    currentIndex,
+    error,
+    isLoading,
+    noMoreImages,
+    showNextImage,
+    showPreviousImage,
+  } = useSlideshow({ fetchImage: pelicanImageService.getRandomImage });
 
-  return <ImageSlideshow imageUrls={imageUrls} />;
+  return (
+    <ImageSlideshow
+      imageUrls={imageUrls}
+      currentIndex={currentIndex}
+      error={error}
+      isLoading={isLoading}
+      noMoreImages={noMoreImages}
+      onNext={showNextImage}
+      onPrevious={showPreviousImage}
+    />
+  );
 }
 
 export default App;
