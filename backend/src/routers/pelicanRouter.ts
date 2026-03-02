@@ -5,7 +5,7 @@ import { createImageService } from "../services/imageService.js";
 export const pelicanRouter = Router();
 const imageService = createImageService(unsplashImageRepository);
 
-pelicanRouter.get("/", async (req, res) => {
+pelicanRouter.get("/random", async (req, res) => {
   try {
     const pelicanQuery = "pelican";
     const image = await imageService.getRandomImage(pelicanQuery);
