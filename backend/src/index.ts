@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
-import { pelicanRouter } from "./routers/pelicanRouter.js";
+import { createPelicanRouter } from "./routers/pelicanRouter.js";
+import { unsplashImageRepository } from "./repositories/unsplashImageRepository.js";
+import { createImageService } from "./services/imageService.js";
 import env from "./env.js";
 
 const app = express();
@@ -9,7 +11,8 @@ const port = env.PORT;
 app.use(cors());
 app.use(express.json());
 
-app.use("/pelicans", pelicanRouter);
+const imageService = createImageService(unsplashImageRepository);
+app.use("/pelicans", createPelicanRouter(imageService));
 
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
