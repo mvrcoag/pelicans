@@ -41,6 +41,30 @@ cd frontend
 npm run dev
 ```
 
+## Tests
+Run tests per project:
+
+```bash
+cd backend
+npm test
+```
+
+```bash
+cd frontend
+npm test
+```
+
+### What is tested
+Backend:
+- `imageService` returns images and wraps errors
+- Unsplash repository maps responses and uses fallback on 403
+- `GET /pelicans/random` returns payload and handles failures
+
+Frontend:
+- `useSlideshow` fetches initial images, caches, limits to 5, and flags no-previous
+- `ImageSlideshow` renders loading/error/empty states and indicators
+- Space bar toggles play/pause
+
 ## Default Ports
 - Backend: `http://localhost:3200`
 - Frontend (Vite): `http://localhost:5173`
